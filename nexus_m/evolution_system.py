@@ -51,7 +51,21 @@ class EvolutionSystem:
         self.latent_model=None
         self.events=self.workspace/'events.jsonl'
 
-    def close(self):self.graph.close()
+    def generate_text(self,prompt:str,model_path:str|Path,**generation)->str:
+        """Run the optional NeuroOS pipeline; symbolic solve() remains independent."""
+        from .neuroos_bridge import NeuroOSBridge
+        if not hasattr(self,'_neuroos'):
+            self._neuroos=NeuroOSBridge(model_path,self.workspace/'neuroos')
+        elif self._neuroos.model_path!=Path(model_path).resolve():
+            raise ValueError('close this system before switching GGUF models')
+        response=self._neuroos.generate(prompt,**generation)
+        self.record('neuroos_generation',{'prompt_length':len(prompt),'response_length':len(response)})
+        return response
+
+    def close(self):
+        try:
+            if hasattr(self,'_neuroos'):self._neuroos.close()
+        finally:self.graph.close()
     def __enter__(self):return self
     def __exit__(self,*args):self.close()
 
@@ -211,7 +225,7 @@ class EvolutionSystem:
         self.record('topology',report)
         return report
 
-    def demo(self,simulations=1200,approve_code_changes=False):
+    def demo(self,simulations=1200,approve_code_changes=None):
         result={
           'compute':self.demonstrate_universal_compute(),
           'causal':self.demonstrate_causality(),

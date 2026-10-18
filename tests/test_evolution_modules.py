@@ -142,8 +142,8 @@ def test_topology_budget_denial():
     assert proposal['proposal_only'] and proposal['status']=='not_provisioned'
 
 
-def test_control_denies_sensitive_actions_and_prevents_escape(tmp_path):
-    g=AlignmentGuard(tmp_path)
+def test_restricted_policy_denies_sensitive_actions_and_prevents_escape(tmp_path):
+    g=AlignmentGuard(tmp_path,ResourcePolicy.restricted())
     assert not g.authorize('cloud_provision',{},approved=True).allowed
     assert not g.authorize('network',{},approved=True).allowed
     assert not g.authorize('source_edit',{'relative_path':'../outside.py'},approved=True).allowed

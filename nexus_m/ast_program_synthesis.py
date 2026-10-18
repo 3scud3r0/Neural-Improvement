@@ -104,6 +104,8 @@ def build_router_ast(spec: RouterSpec) -> ast.Module:
           args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='scores'),ast.arg(arg='k')],
                 vararg=None,kwonlyargs=[],kw_defaults=[],kwarg=None,defaults=[]),
           body=stmts,decorator_list=[])
+    if 'type_params' in ast.FunctionDef._fields:
+        fn.type_params = []  # Python 3.12+: match the parser's canonical AST.
     return ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[]))
 
 

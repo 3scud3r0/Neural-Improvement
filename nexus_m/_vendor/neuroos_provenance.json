@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/3scud3r0/NeuroOS",
+  "commit": "2a3b46b2cdb1de377b013458173ae0b3d64b3590",
+  "original_sha256": "cc9df6f9632cec79a1376b53d9f445fea2b006ff4adc1d3a75c56a5f4804eaa1",
+  "vendored_sha256": "55a71455d6087cffe544d06acf79002db2a449e1c89a16f5289cfefcb2b3e2b5",
+  "transformation": "Extract first fenced Python block; no code changes.",
+  "license": "MIT"
+}

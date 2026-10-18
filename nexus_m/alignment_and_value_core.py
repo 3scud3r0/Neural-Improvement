@@ -1,9 +1,7 @@
-"""Enforceable local operating constraints and tamper-evident action ledger.
+"""Configurable experiment policy and tamper-evident action ledger.
 
-This module is NOT a solution to AI alignment or a proof of human values. It
-provides bounded permissions, reproducible audits, manual promotion gates,
-resource quotas and explicit denials. External process isolation requires
-separate OS/container controls; a Python policy cannot be incorruptible.
+Defaults permit capabilities, automatic promotion and unbounded quotas.
+This policy is not process containment; use CrossJail or an OS sandbox.
 """
 from __future__ import annotations
 from dataclasses import dataclass,asdict
@@ -12,17 +10,29 @@ import hashlib,json,os,time
 
 @dataclass(frozen=True)
 class ResourcePolicy:
-    max_mcts_simulations:int=100_000
-    max_mcts_depth:int=1024
-    max_agents:int=1000
-    max_neurons_per_agent:int=10_000
-    max_parameters:int=25_000_000
-    max_disk_bytes:int=2_000_000_000
-    max_wall_seconds:float=3600.
-    allow_network:bool=False
-    allow_cloud_provision:bool=False
-    allow_native_code_execution:bool=False
-    auto_promote_source_changes:bool=False
+    max_mcts_simulations:int|None=None
+    max_mcts_depth:int|None=None
+    max_agents:int|None=None
+    max_neurons_per_agent:int|None=None
+    max_parameters:int|None=None
+    max_disk_bytes:int|None=None
+    max_wall_seconds:float|None=None
+    allow_network:bool=True
+    allow_cloud_provision:bool=True
+    allow_native_code_execution:bool=True
+    auto_promote_source_changes:bool=True
+    allow_unknown_capabilities:bool=True
+    managed_only:bool=False
+
+    @classmethod
+    def restricted(cls):
+        """Legacy opt-in policy for bounded experiments."""
+        return cls(max_mcts_simulations=100_000,max_mcts_depth=1024,
+                   max_agents=1000,max_neurons_per_agent=10_000,max_parameters=25_000_000,
+                   max_disk_bytes=2_000_000_000,max_wall_seconds=3600.,
+                   allow_network=False,allow_cloud_provision=False,
+                   allow_native_code_execution=False,auto_promote_source_changes=False,
+                   allow_unknown_capabilities=False,managed_only=True)
 
 @dataclass
 class Decision:
@@ -31,6 +41,10 @@ class Decision:
     reason:str
     needs_approval:bool=False
     def as_dict(self):return asdict(self)
+
+
+def within(value, maximum, minimum=0):
+    return value >= minimum and (maximum is None or value <= maximum)
 
 
 class AlignmentGuard:
@@ -61,40 +75,41 @@ class AlignmentGuard:
         with self.audit.open('a',encoding='utf-8') as f:f.write(json.dumps(entry,ensure_ascii=False,sort_keys=True)+'\n')
         self._last_hash=entry['hash']
 
-    def authorize(self,action:str,details:dict|None=None,approved:bool=False)->Decision:
+    def authorize(self,action:str,details:dict|None=None,approved:bool|None=None)->Decision:
         d=details or {};p=self.policy
         if action=='mcts':
-            valid=(1<=int(d.get('simulations',0))<=p.max_mcts_simulations and
-                   1<=int(d.get('depth',0))<=p.max_mcts_depth)
+            valid=(within(int(d.get('simulations',0)),p.max_mcts_simulations,1) and
+                   within(int(d.get('depth',0)),p.max_mcts_depth,1))
             decision=Decision(valid,action,'within search budget' if valid else 'search budget exceeded')
         elif action=='topology':
-            valid=(2<=int(d.get('agents',0))<=p.max_agents and
-                   4<=int(d.get('width',0))<=p.max_neurons_per_agent and
-                   int(d.get('parameters',0))<=p.max_parameters)
+            valid=(within(int(d.get('agents',0)),p.max_agents,2) and
+                   within(int(d.get('width',0)),p.max_neurons_per_agent,4) and
+                   within(int(d.get('parameters',0)),p.max_parameters,0))
             decision=Decision(valid,action,'within topology budget' if valid else 'topology budget exceeded')
         elif action=='network':
-            decision=Decision(p.allow_network and approved,action,
-                              'network access requires configuration and approval',True)
+            decision=Decision(p.allow_network,action,
+                              'network capability policy')
         elif action=='cloud_provision':
-            decision=Decision(p.allow_cloud_provision and approved,action,
-                              'cloud provisioning requires opt-in and human approval',True)
+            decision=Decision(p.allow_cloud_provision,action,
+                              'cloud capability policy')
         elif action=='native_execute':
-            decision=Decision(p.allow_native_code_execution and approved,action,
-                              'native execution requires explicit permissions',True)
+            decision=Decision(p.allow_native_code_execution,action,
+                              'native execution capability policy')
         elif action in ('source_edit','hot_swap'):
             try:
                 target=(self.workspace/str(d.get('relative_path',''))).resolve()
                 relative=target.relative_to(self.workspace)
-                valid=len(relative.parts)>=2 and relative.parts[0]=='managed' and relative.suffix=='.py'
+                valid=bool(relative.parts) and (not p.managed_only or (
+                    len(relative.parts)>=2 and relative.parts[0]=='managed' and relative.suffix=='.py'))
             except ValueError:valid=False
-            allow=valid and (approved or p.auto_promote_source_changes)
+            allow=valid and (p.auto_promote_source_changes if approved is None else approved)
             decision=Decision(allow,action,
-                  'allowlisted managed source and promotion approval required',not allow and valid)
+                  'workspace source and configured promotion policy',not allow and valid)
         elif action=='disk_write':
-            valid=0<=int(d.get('bytes',-1))<=p.max_disk_bytes
+            valid=within(int(d.get('bytes',-1)),p.max_disk_bytes)
             decision=Decision(valid,action,'disk write budget' if valid else 'disk budget exceeded')
         else:
-            decision=Decision(False,action,'unknown capability')
+            decision=Decision(p.allow_unknown_capabilities,action,'extension capability policy')
         self._log(decision,d)
         return decision
 
@@ -103,8 +118,7 @@ class AlignmentGuard:
         return True
 
     def invariant_report(self)->dict:
-        return {'enforced': ['workspace-limited source promotion','manual gate by default',
-                             'bounded search','bounded topology','audit hash chain'],
+        return {'enforced': ['workspace-limited source promotion','configurable quotas','audit hash chain'],
                 'not_guaranteed':['human value alignment','recursive safety proofs',
                                   'hostile process containment','tamper resistance against OS administrators'],
                 'policy':asdict(self.policy),'audit_integrity':self.verify_ledger()}

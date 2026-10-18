@@ -18,7 +18,8 @@ def main(argv=None):
     s.add_argument('--simulations',type=int,default=96)
     s.add_argument('--seed',type=int,default=2026)
     s.add_argument('--min-gain',type=float,default=.05)
-    s.add_argument('--approve',action='store_true',help='permit reviewed managed-plugin source promotion')
+    s.add_argument('--approve',action=argparse.BooleanOptionalAction,default=None,help='automatic by default; --no-approve stages only')
+    s.add_argument('--target',default='managed/ast_router.py')
     prof=sub.add_parser('profile',help='profile bottlenecks in the managed router')
     prof.add_argument('--output',default='runs/autosynth')
     prof.add_argument('--iterations',type=int,default=100)
@@ -30,7 +31,8 @@ def main(argv=None):
     cap.add_argument('--workers',type=int,default=4)
     r=sub.add_parser('rollback',help='restore previous managed router')
     r.add_argument('--output',default='runs/autosynth')
-    r.add_argument('--approve',action='store_true')
+    r.add_argument('--approve',action=argparse.BooleanOptionalAction,default=None)
+    r.add_argument('--target',default='managed/ast_router.py')
     v=sub.add_parser('verify',help='finite exhaustive verification + structural termination check')
     v.add_argument('--strategy',choices=('sort','heap','scan','reverse_sort'),default='heap')
     v.add_argument('--key',choices=('stable','score','index'),default='stable')
@@ -44,7 +46,8 @@ def main(argv=None):
         print(json.dumps({'source':compile_source(spec),'evidence':verify(spec).as_dict()},
                          indent=2,ensure_ascii=False));return 0
     guard=AlignmentGuard(Path(args.output),ResourcePolicy())
-    improver=SearchDrivenImprover(guard,min_gain=getattr(args,'min_gain',.05))
+    improver=SearchDrivenImprover(guard,min_gain=getattr(args,'min_gain',.05),
+                                 target_path=getattr(args,'target','managed/ast_router.py'))
     if args.command=='profile':
         print(json.dumps(profile(improver,iterations=args.iterations).as_dict(),
                          ensure_ascii=False,indent=2));return 0

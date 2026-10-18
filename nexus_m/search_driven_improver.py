@@ -1,7 +1,7 @@
-"""No-LLM source optimization: MCTS -> AST -> tests -> staging -> approved swap.
+"""MCTS AST synthesis with automatic tested promotion and configurable targets.
 
-Self-modification is restricted to a managed router plugin. Core safety/policy
-files, arbitrary Python and network/cloud APIs are not candidate targets.
+The 24-program grammar and correctness gate define this search algorithm.
+They are not a general plugin permission boundary.
 """
 from __future__ import annotations
 from dataclasses import dataclass,asdict
@@ -38,13 +38,15 @@ class PromotionReport:
 def _digest(source:str)->str:return hashlib.sha256(source.encode('utf-8')).hexdigest()
 
 class SearchDrivenImprover:
-    def __init__(self,guard:AlignmentGuard,min_gain:float=.05):
+    def __init__(self,guard:AlignmentGuard,min_gain:float=.05,*,target_path:str="managed/ast_router.py"):
         self.guard=guard
         if not 0<=min_gain<1:raise ValueError('gain must be in 0..1')
         self.min_gain=min_gain
         self.folder=guard.workspace/'managed'
         self.folder.mkdir(parents=True,exist_ok=True)
-        self.active=self.folder/'ast_router.py'
+        self.active=(guard.workspace/target_path).resolve()
+        self.active.relative_to(guard.workspace)
+        self.active.parent.mkdir(parents=True,exist_ok=True)
         if not self.active.exists():self.active.write_text(compile_source(RouterSpec()),encoding='utf-8')
         self.staged=self.folder/'candidate_ast_router.py'
         self._route=self._load(self.active.read_text(encoding='utf-8'))
@@ -62,8 +64,9 @@ class SearchDrivenImprover:
 
     def route(self,scores,k):return self._route(scores,k)
 
-    def run(self,*,approve:bool=False,simulations:int=96,seed:int=2026,
+    def run(self,*,approve:bool|None=None,simulations:int=96,seed:int=2026,
             min_gain:float|None=None)->PromotionReport:
+        approve=self.guard.policy.auto_promote_source_changes if approve is None else approve
         if not self.guard.authorize('mcts',{'simulations':simulations,'depth':3}).allowed:
             raise ValueError('search exceeds explicit policy budget')
         if min_gain is not None and not 0<=min_gain<1:raise ValueError('bad threshold')
@@ -88,14 +91,14 @@ class SearchDrivenImprover:
             reason=f'held-out gain {heldout.improvement:.3f} < required {threshold:.3f}'
         elif not approve:
             reason='staged for inspection; human approval required for persistent change'
-        elif not self.guard.authorize('source_edit',{'relative_path':'managed/ast_router.py'},approved=True).allowed:
+        elif not self.guard.authorize('source_edit',{'relative_path':str(self.active.relative_to(self.guard.workspace))},approved=True).allowed:
             reason='policy rejected source modification'
-        elif not self.guard.authorize('hot_swap',{'relative_path':'managed/ast_router.py'},approved=True).allowed:
+        elif not self.guard.authorize('hot_swap',{'relative_path':str(self.active.relative_to(self.guard.workspace))},approved=True).allowed:
             reason='policy rejected hot swap'
         else:
-            backup=self.folder/'ast_router.previous.py'
+            backup=self.active.with_suffix('.previous.py')
             backup.write_text(previous,encoding='utf-8')
-            replacement=self.folder/'ast_router.next.py'
+            replacement=self.active.with_suffix('.next.py')
             replacement.write_text(source,encoding='utf-8')
             try:
                 new_fn=self._load(source)
@@ -130,15 +133,16 @@ class SearchDrivenImprover:
             json.dumps(heldout.as_dict(),indent=2,ensure_ascii=False),encoding='utf-8')
         return report
 
-    def rollback(self,*,approve:bool=False)->bool:
-        backup=self.folder/'ast_router.previous.py'
+    def rollback(self,*,approve:bool|None=None)->bool:
+        backup=self.active.with_suffix('.previous.py')
         if not backup.exists():return False
-        if not approve:raise PermissionError('manual approval required for rollback')
-        if not self.guard.authorize('hot_swap',{'relative_path':'managed/ast_router.py'},approved=True).allowed:
+        approve=self.guard.policy.auto_promote_source_changes if approve is None else approve
+        if not approve:raise PermissionError('rollback disabled by caller or policy')
+        if not self.guard.authorize('hot_swap',{'relative_path':str(self.active.relative_to(self.guard.workspace))},approved=True).allowed:
             raise PermissionError('rollback denied by policy')
         recovered=backup.read_text(encoding='utf-8')
         fn=self._load(recovered)
-        temp=self.folder/'ast_router.rollback.py'
+        temp=self.active.with_suffix('.rollback.py')
         temp.write_text(recovered,encoding='utf-8')
         os.replace(temp,self.active)
         self._route=fn

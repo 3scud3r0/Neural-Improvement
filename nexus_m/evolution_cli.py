@@ -14,7 +14,7 @@ def main(argv=None):
     demo.add_argument('--agents',type=int,default=8)
     demo.add_argument('--width',type=int,default=32)
     demo.add_argument('--simulations',type=int,default=1500)
-    demo.add_argument('--approve-code-change',action='store_true')
+    demo.add_argument('--approve-code-change',action=argparse.BooleanOptionalAction,default=None)
     solve=sub.add_parser('search',help='Hierarchical program synthesis on public examples')
     solve.add_argument('--examples',required=True,help='JSON file of input/output pairs')
     solve.add_argument('--output',default='runs/evolution_search')
@@ -23,7 +23,10 @@ def main(argv=None):
     solve.add_argument('--uniform',action='store_true')
     optimize=sub.add_parser('improve',help='Propose and benchmark a reviewed source change')
     optimize.add_argument('--output',default='runs/evolution_improvement')
-    optimize.add_argument('--approve',action='store_true')
+    optimize.add_argument('--approve',action=argparse.BooleanOptionalAction,default=None)
+    optimize.add_argument('--rounds',type=int,default=1,help='0 continues until interrupted')
+    optimize.add_argument('--max-cycles',type=int,default=None)
+    optimize.add_argument('--target',default='managed/router.py',help='router path relative to output workspace')
     opt_run=sub.add_parser('run-subset',help='Execute Python integer subset in strict budget')
     opt_run.add_argument('--source',required=True,help='Path to Python-subset source file')
     opt_run.add_argument('--input',required=True,type=int)
@@ -39,7 +42,14 @@ def main(argv=None):
                 result=system.solve([tuple(pair) for pair in payload['examples']],
                        args.simulations,args.depth,not args.uniform,
                        heldout_inputs=payload.get('unlabeled_inputs'))
-            elif args.command=='improve':result=system.improver.step(approve=args.approve).as_dict()
+            elif args.command=='improve':
+                from .recursive_self_improvement import ManagedSelfImprover
+                improver=ManagedSelfImprover(system.guard,max_cycles=args.max_cycles,target_path=args.target)
+                try:
+                    for report in improver.iter_optimize(args.rounds,args.approve):
+                        print(json.dumps(report.as_dict(),ensure_ascii=False),flush=True)
+                except KeyboardInterrupt:return 130
+                return 0
     print(json.dumps(result,indent=2,ensure_ascii=False,default=str))
     return 0
 
