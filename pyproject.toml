@@ -12,11 +12,21 @@ dependencies = ["numpy>=1.24", "torch>=2.0", "matplotlib>=3.7", "networkx>=3.5",
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+neuroos = ["gguf>=0.10", "tiktoken>=0.7"]
+neuroos-api = ["fastapi>=0.110", "uvicorn>=0.29"]
 
 [project.scripts]
 nexus-m = "nexus_m.cli:main"
 nexus-evolution = "nexus_m.evolution_cli:main"
 nexus-autosynth = "nexus_m.autosynth_cli:main"
+nexus-neuroos = "nexus_m.neuroos_bridge:main"
+crossjail = "crossjail:main"
+
+[tool.setuptools]
+py-modules = ["crossjail"]
+
+[tool.setuptools.package-data]
+"nexus_m._vendor" = ["NEUROOS_LICENSE", "neuroos_provenance.json"]
 
 [tool.setuptools.packages.find]
 where = ["."]

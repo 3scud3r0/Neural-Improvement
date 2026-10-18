@@ -1,10 +1,6 @@
-"""Audited, bounded self-optimization of ONE explicitly managed routing plugin.
+"""Router optimization with configurable cycles, plugin targets and promotion.
 
-The system benchmarks two reviewed algorithm templates, checks equivalence,
-prepares a source patch and optionally promotes it after authorization.
-No LLM code generation, unrestricted repository editing, unbounded autonomous
-loops, self-modification of policy guards, unsupervised cloud provisioning or
-claim of permanent/infinite intelligence growth.
+External plugins execute ordinary Python; containment is the caller's responsibility.
 """
 from __future__ import annotations
 from dataclasses import dataclass,asdict
@@ -29,11 +25,16 @@ class ImprovementReport:
     def as_dict(self):return asdict(self)
 
 class ManagedSelfImprover:
-    def __init__(self,guard:AlignmentGuard,min_speedup:float=0.05):
+    def __init__(self,guard:AlignmentGuard,min_speedup:float=0.05,*,max_cycles:int|None=None,
+                 target_path:str="managed/router.py"):
+        if max_cycles is not None and max_cycles<1:raise ValueError("max_cycles must be positive")
+        self.max_cycles=max_cycles
         self.guard=guard
         self.managed=self.guard.workspace/'managed'
         self.managed.mkdir(parents=True,exist_ok=True)
-        self.path=self.managed/'router.py'
+        self.path=(guard.workspace/target_path).resolve()
+        self.path.relative_to(guard.workspace)
+        self.path.parent.mkdir(parents=True,exist_ok=True)
         if not self.path.exists():
             self.path.write_text(SORT_TEMPLATE,encoding='utf-8')
         self.min_speedup=min_speedup
@@ -42,14 +43,12 @@ class ManagedSelfImprover:
 
     @staticmethod
     def _load(path:Path):
-        # Only load locally generated and allowlisted templates, never arbitrary user code.
-        source=path.read_text(encoding='utf-8')
-        if source not in (SORT_TEMPLATE,HEAP_TEMPLATE):
-            raise RuntimeError('managed source does not match reviewed allowlisted templates')
-        spec=importlib.util.spec_from_file_location('nexus_reviewed_router',str(path))
-        module=importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module.route
+        # Execute fresh source rather than cached bytecode after a hot swap.
+        namespace={"__file__":str(path),"__name__":"nexus_router_plugin"}
+        exec(compile(path.read_text(encoding='utf-8'),str(path),'exec'),namespace)
+        route=namespace.get('route')
+        if not callable(route):raise TypeError('plugin must define route(scores, k)')
+        return route
 
     def route(self,scores:list[float],k:int):return self._route(scores,k)
 
@@ -62,9 +61,11 @@ class ManagedSelfImprover:
             trials.append((time.perf_counter()-start)*1000)
         return statistics.median(trials)
 
-    def step(self,approve:bool=False,seed:int=2026,batches:int=160)->ImprovementReport:
+    def step(self,approve:bool|None=None,seed:int=2026,batches:int=160)->ImprovementReport:
         self.rounds+=1
-        if self.rounds>5:raise RuntimeError('maximum of five improvement attempts per process')
+        if self.max_cycles is not None and self.rounds>self.max_cycles:
+            raise RuntimeError('configured improvement cycle limit reached')
+        approve=self.guard.policy.auto_promote_source_changes if approve is None else approve
         active=self.path.read_text(encoding='utf-8')
         candidate=HEAP_TEMPLATE if active==SORT_TEMPLATE else SORT_TEMPLATE
         rng=random.Random(seed)
@@ -88,7 +89,7 @@ class ManagedSelfImprover:
                 elif not approve:
                     reason='candidate is eligible but manual promotion not approved'
                 else:
-                    rel='managed/router.py'
+                    rel=str(self.path.relative_to(self.guard.workspace))
                     if not self.guard.authorize('source_edit',{'relative_path':rel},approved=approve).allowed:
                         reason='source edit rejected by policy'
                     elif not self.guard.authorize('hot_swap',{'relative_path':rel},approved=approve).allowed:
@@ -96,7 +97,7 @@ class ManagedSelfImprover:
                     else:
                         backup=self.path.with_suffix('.previous.py')
                         backup.write_text(active,encoding='utf-8')
-                        replacement=self.managed/'new_router.py'
+                        replacement=self.path.with_suffix('.next.py')
                         replacement.write_text(candidate,encoding='utf-8')
                         try:
                             replacement.replace(self.path) # atomic within filesystem
@@ -110,12 +111,21 @@ class ManagedSelfImprover:
                             raise
             report=ImprovementReport('heap' if candidate==HEAP_TEMPLATE else 'sort',
                          baseline,alt,equivalent,gain,promotion,reason,str(self.path))
-            (self.managed/'improvement_reports.jsonl').open('a',encoding='utf-8').write(
-                json.dumps(report.as_dict(),ensure_ascii=False)+'\n')
+            with (self.managed/'improvement_reports.jsonl').open('a',encoding='utf-8') as stream:
+                stream.write(json.dumps(report.as_dict(),ensure_ascii=False)+'\n')
             return report
         finally:
             temp.unlink(missing_ok=True)
 
-    def optimize(self,rounds:int=1,approve:bool=False)->list[ImprovementReport]:
-        if not 1<=rounds<=5:raise ValueError('bounded 1..5 improvement rounds only')
-        return [self.step(approve=approve,seed=2026+i) for i in range(rounds)]
+    def iter_optimize(self,rounds:int=0,approve:bool|None=None):
+        """Yield reports; rounds=0 continues until interrupted or max_cycles."""
+        if rounds<0:raise ValueError('rounds must be nonnegative')
+        index=0
+        while rounds==0 or index<rounds:
+            if self.max_cycles is not None and self.rounds>=self.max_cycles:break
+            yield self.step(approve=approve,seed=2026+index)
+            index+=1
+
+    def optimize(self,rounds:int=1,approve:bool|None=None)->list[ImprovementReport]:
+        if rounds<1:raise ValueError('use iter_optimize for continuous runs')
+        return list(self.iter_optimize(rounds,approve))

@@ -1,6 +1,6 @@
 # NEXUS AutoSynth — síntese de algoritmos por MCTS sem LLM
 
-**Novo laboratório executável: AST Python, busca MCTS sobre programas, benchmarks isolados, verificação finita, melhoramento iterativo de fonte, aprovação, hot-swap e rollback.** Mantém todos os módulos da versão anterior NEXUS Evolution Lab.
+**Novo laboratório executável: AST Python, busca MCTS sobre programas, benchmarks isolados, verificação finita, melhoramento iterativo de fonte, promoção automática, hot-swap e rollback.** Mantém todos os módulos da versão anterior NEXUS Evolution Lab.
 
 ## Início rápido
 
@@ -10,7 +10,9 @@ python -m pytest -q
 python -m nexus_m.autosynth_cli search --simulations 96 --output runs/autosynth
 ```
 
-O comando **não** promove código sem `--approve`. Para analisar a proposta gerada: `runs/autosynth/managed/candidate_ast_router.py`, `proof_evidence.json`, `ast_search_trace.json`. Após inspecionar, execute `search --approve` para promover apenas uma implementação verificada no diretório gerenciado. Para reverter: `rollback --approve`.
+O comando promove automaticamente candidatos que passam pelos testes e pelo ganho mínimo. Use `--no-approve` para apenas preparar uma proposta. As evidências ficam em `runs/autosynth/managed/`. Para reverter, execute `rollback`; o alvo pode ser alterado com `--target`, relativo à raiz `--output`.
+
+**NeuroOS e CrossJail:** veja o [guia de integração, execução contínua e contenção](docs/NEUROOS_CROSSJAIL.md). O NeuroOS foi incorporado como módulo opcional; o CrossJail copia o projeto, limpa o ambiente e aplica os controles disponíveis. Não oferece isolamento de filesystem contra código hostil.
 
 A gramática atual gera 24 programas AST de otimização top-k, **não** qualquer programa Python; não existem provas universais de alinhamento, execução nativa autônoma, provisionamento de nuvem ou autoaperfeiçoamento ilimitado.
 
@@ -66,8 +68,8 @@ reservados para avaliação. Entradas adicionais sem rótulo são opcionais.
 | `dynamic_topology.py` | Crescer/reduzir módulos, aumentar neurônios, preservar pesos sobrepostos e limitar recursos | Sem aquisição autônoma de GPUs/serviços; exige novo otimizador após mutações |
 | `causal_inference_engine.py` | SCM binário, `do(X=x)`, ajustes backdoor/frontdoor, regressão física e testes de intervenção | Não implementa do-calculus completo nem física universal |
 | `conceptual_knowledge_graph.py` | SQLite persistente, grafos tipados, relações com evidência, URIs/hash multimodais e isomorfismos estruturais | Analogia não garante transferência real; não baixa toda a internet |
-| `recursive_self_improvement.py` | Perfil de algoritmo, alternativas revisadas, comparação, equivalência, arquivo gerenciado, rollback e troca de função em execução | Até 5 ciclos por processo, apenas plugin allowlisted, aprovação humana por padrão |
-| `alignment_and_value_core.py` | Quotas, permissões, revisão humana, trilha de auditoria com hashes e negação de capacidades não autorizadas | **Não** resolve alinhamento de valores nem torna o sistema incorruptível |
+| `recursive_self_improvement.py` | Perfil de algoritmo, alternativas revisadas, comparação, equivalência, arquivo gerenciado, rollback e troca de função em execução | Sem teto global de ciclos; promoção automática; alvo configurável dentro do workspace; mantém testes e backups |
+| `alignment_and_value_core.py` | Quotas e permissões configuráveis, capacidades permitidas por padrão, trilha de auditoria com hashes | **Não** resolve alinhamento de valores nem torna o sistema incorruptível |
 
 ## Componentes adicionais integrados
 

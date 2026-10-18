@@ -12,10 +12,10 @@ from .model import NeuralSociety
 
 @dataclass(frozen=True)
 class TopologyLimits:
-    max_agents:int=1000
-    max_width:int=10000
-    max_parameters:int=25_000_000
-    max_training_memory_mb:float=2048.0
+    max_agents:int|None=None
+    max_width:int|None=None
+    max_parameters:int|None=None
+    max_training_memory_mb:float|None=None
     min_agents:int=2
 
 @dataclass
@@ -38,9 +38,11 @@ class DynamicTopology:
     def _check(self,model):
         params=sum(p.numel() for p in model.parameters())
         estimated_adam_mb=params*16/(1024**2) # parameters, grads + two optimizer moments
-        if (model.agents<self.limits.min_agents or model.agents>self.limits.max_agents or
-            model.width>self.limits.max_width or params>self.limits.max_parameters or
-            estimated_adam_mb>self.limits.max_training_memory_mb):
+        from .alignment_and_value_core import within
+        if (not within(model.agents,self.limits.max_agents,self.limits.min_agents) or
+            not within(model.width,self.limits.max_width,4) or
+            not within(params,self.limits.max_parameters) or
+            not within(estimated_adam_mb,self.limits.max_training_memory_mb)):
             raise ValueError('topology exceeds declared capacity limits')
 
     def _transform(self,agents:int,width:int,keep:tuple[int,...]|None=None,action='reshape'):
@@ -71,11 +73,11 @@ class DynamicTopology:
         return event
 
     def recruit(self,count:int=1):
-        if not 1<=count<=1000:raise ValueError('invalid recruit count')
+        if count<1:raise ValueError('invalid recruit count')
         return self._transform(self.model.agents+count,self.model.width,action=f'recruit_{count}')
 
     def widen(self,additional_neurons:int):
-        if not 1<=additional_neurons<=10000:raise ValueError('invalid width increase')
+        if additional_neurons<1:raise ValueError('invalid width increase')
         return self._transform(self.model.agents,self.model.width+additional_neurons,
                                action=f'widen_{additional_neurons}')
 
@@ -90,10 +92,10 @@ class DynamicTopology:
     def suggest(self,validation_gain:float,gradient_norm:float)->dict:
         """Simple, inspectable NAS heuristic. Never applies changes itself."""
         if validation_gain < 0.002 and gradient_norm > 0.01:
-            if self.model.agents + 1 <= self.limits.max_agents:
+            if self.limits.max_agents is None or self.model.agents + 1 <= self.limits.max_agents:
                 return {'action':'recruit','count':1,'reason':'plateau with gradient signal'}
         if validation_gain < 0.002 and gradient_norm <= 0.01:
-            if self.model.width + 16 <= self.limits.max_width:
+            if self.limits.max_width is None or self.model.width + 16 <= self.limits.max_width:
                 return {'action':'widen','neurons':16,'reason':'plateau with small gradients'}
         return {'action':'none','reason':'no reliable plateau detected'}
 

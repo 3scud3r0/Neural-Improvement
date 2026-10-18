@@ -30,12 +30,12 @@ Validação independente: entradas inéditas + 10.467 exemplos finitos
     v
 Registro do programa candidato e evidências em managed/
     |
-    +-- sem --approve --> apenas sugestão, fonte ativa intacta
+    +-- com --no-approve --> apenas sugestão, fonte ativa intacta
     |
-    +-- com --approve e ganho >= 5% --> backup + os.replace + hot-swap
+    +-- padrão, com ganho >= 5% --> backup + os.replace + hot-swap
     |                                          |
     |                                          v
-    |                                     rollback aprovado
+    |                                     rollback automático
     v
 Próxima rodada: comparação contra a nova versão ativa, não contra a original
 ```
@@ -72,12 +72,12 @@ A avaliação também utiliza casos com empates, entradas vazias, valores negati
 
 ## Autoaperfeiçoamento: ciclo real
 
-- Com consentimento explícito, a versão superior substitui o plugin em `managed/ast_router.py` e a função na RAM é atualizada.
+- Por padrão, a versão superior substitui o plugin e atualiza a função na RAM; `--no-approve` mantém apenas a proposta. O alvo padrão é `managed/ast_router.py`, configurável por `--target`.
 - A versão anterior é copiada para `managed/ast_router.previous.py`.
 - A próxima rodada faz o benchmark **contra a versão já melhorada**, não contra um baseline antigo.
 - Se a melhoria incremental não superar 5% em exemplos inéditos, o programa não é promovido.
-- `rollback --approve` restaura a versão anterior.
-- Arquivos centrais, guarda de alinhamento, credenciais e APIs de nuvem **não** são editados/provisionados autonomamente.
+- `rollback` restaura a versão anterior.
+- A política permite edição em todo o workspace, mas este sintetizador continua gerando apenas roteadores da DSL. Não há implementação de provisionamento de nuvem. Consulte [NeuroOS e CrossJail](NEUROOS_CROSSJAIL.md) para os padrões e limites de execução.
 
 ## Integração com o laboratório anterior
 
@@ -91,8 +91,8 @@ python -m pytest -q
 python -m nexus_m.autosynth_cli profile --output runs/autosynth
 python -m nexus_m.autosynth_cli verify --strategy heap
 python -m nexus_m.autosynth_cli search --simulations 96 --output runs/autosynth
-python -m nexus_m.autosynth_cli search --simulations 96 --output runs/autosynth --approve
-python -m nexus_m.autosynth_cli rollback --output runs/autosynth --approve
+python -m nexus_m.autosynth_cli search --simulations 96 --output runs/autosynth --no-approve
+python -m nexus_m.autosynth_cli rollback --output runs/autosynth
 python -m nexus_m.autosynth_cli capacity --agents 100 --width 10000 --nodes 100000 --simulations 100000
 ```
 

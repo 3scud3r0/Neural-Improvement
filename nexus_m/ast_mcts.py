@@ -36,7 +36,7 @@ class SynthesisReport:
 class ASTSynthesisMCTS:
     def __init__(self,simulations=96,seed=2026,exploration=1.7,
                  checks=45,timing=22,timeout=8.0,baseline_spec:RouterSpec|None=None):
-        if not 1<=simulations<=500:raise ValueError('synthesis budget 1..500')
+        if simulations<1:raise ValueError('simulations must be positive')
         self.simulations=simulations;self.rng=random.Random(seed)
         self.seed=seed;self.exploration=exploration
         self.checks=checks;self.timing=timing;self.timeout=timeout

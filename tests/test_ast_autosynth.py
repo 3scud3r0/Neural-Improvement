@@ -54,7 +54,7 @@ def test_ast_mcts_discovers_correct_candidates():
     assert report.best_source.startswith('def route(')
 
 
-def test_staged_default_no_automatic_promotion(tmp_path,monkeypatch):
+def test_explicit_preview_no_automatic_promotion(tmp_path,monkeypatch):
     guard=AlignmentGuard(tmp_path)
     improver=SearchDrivenImprover(guard)
     before=improver.active.read_text(encoding='utf-8')
@@ -76,7 +76,7 @@ def test_staged_default_no_automatic_promotion(tmp_path,monkeypatch):
     assert guard.verify_ledger()
 
 
-def test_explicit_approval_managed_swap_and_rollback(tmp_path,monkeypatch):
+def test_default_automatic_swap_and_rollback(tmp_path,monkeypatch):
     guard=AlignmentGuard(tmp_path)
     improver=SearchDrivenImprover(guard)
     old=improver.active.read_text()
@@ -89,17 +89,17 @@ def test_explicit_approval_managed_swap_and_rollback(tmp_path,monkeypatch):
               'unique_candidates':5,'elapsed_seconds':1.,'best_train_gain':.4,
               'as_dict':lambda self:{'result':'mock_for_integration_only'}})()
     monkeypatch.setattr(impmod,'ASTSynthesisMCTS',FakeSearch)
-    outcome=improver.run(simulations=10,approve=True,min_gain=0.)
+    outcome=improver.run(simulations=10,min_gain=0.)
     assert outcome.promoted
     assert improver.route([3.,3.,2.],2)==[0,1]
     assert improver.active.read_text()!=old
-    assert improver.rollback(approve=True)
+    assert improver.rollback()
     assert improver.active.read_text()==old
     assert guard.verify_ledger()
 
 
 def test_cannot_edit_policy_file_even_with_manual_approval(tmp_path):
-    guard=AlignmentGuard(tmp_path,ResourcePolicy(auto_promote_source_changes=True))
+    guard=AlignmentGuard(tmp_path,ResourcePolicy.restricted())
     decision=guard.authorize('source_edit',{'relative_path':'nexus_m/alignment_and_value_core.py'},approved=True)
     assert not decision.allowed
     assert not guard.authorize('cloud_provision',{'agents':100},approved=True).allowed
