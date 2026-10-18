@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+*.egg-info/
+dist/
+build/
+# Generated experiments and private data
+runs/
+*.sqlite
+*.sqlite3
+*.db
+*.pt
+*.pth
+*.ckpt
+*.pem
+.env
+.env.*
+# GitHub-hosted source excludes large binary archives
+*.zip
