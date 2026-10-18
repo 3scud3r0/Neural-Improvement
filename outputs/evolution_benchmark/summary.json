@@ -1,0 +1,64 @@
+{
+  "seeds": [
+    2026,
+    2027,
+    2028
+  ],
+  "task_families": [
+    "affine_A",
+    "affine_B",
+    "absolute",
+    "quadratic",
+    "negative",
+    "shift_square",
+    "folded",
+    "double_shift"
+  ],
+  "simulations_budget_per_task": 350,
+  "conditions": [
+    {
+      "condition": "uniform",
+      "tasks": 24,
+      "example_solved_rate": 0.8333333333333334,
+      "heldout_exact_rate": 0.8333333333333334,
+      "average_mcts_simulations": 146.16666666666666,
+      "total_search_seconds": 0.2995846620000293,
+      "retrieved_from_memory": 0
+    },
+    {
+      "condition": "neural_untrained",
+      "tasks": 24,
+      "example_solved_rate": 0.625,
+      "heldout_exact_rate": 0.625,
+      "average_mcts_simulations": 198.08333333333334,
+      "total_search_seconds": 0.6839777930000537,
+      "retrieved_from_memory": 0
+    },
+    {
+      "condition": "latent_only",
+      "tasks": 24,
+      "example_solved_rate": 0.9583333333333334,
+      "heldout_exact_rate": 0.9583333333333334,
+      "average_mcts_simulations": 79.95833333333333,
+      "total_search_seconds": 5.147328760999926,
+      "retrieved_from_memory": 0
+    },
+    {
+      "condition": "collective_online",
+      "tasks": 24,
+      "example_solved_rate": 0.8333333333333334,
+      "heldout_exact_rate": 0.8333333333333334,
+      "average_mcts_simulations": 141.33333333333334,
+      "total_search_seconds": 10.437851387999899,
+      "retrieved_from_memory": 0
+    }
+  ],
+  "elapsed_total_sec": 20.752146351999954,
+  "caveats": [
+    "All tasks share the same handcrafted macro grammar",
+    "Latent/collective conditions have additional training compute",
+    "Neural prior in neural_untrained condition has not been trained for macros",
+    "A solution verified on samples is not a formal universal proof",
+    "Small number of seeds; no claims of general performance"
+  ]
+}
