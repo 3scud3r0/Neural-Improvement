@@ -1,0 +1,22 @@
+{
+  "description": "Audited AST program synthesis without LLM, restricted to managed router plugin",
+  "ast_grammar": {
+    "strategies": ["sort", "heap", "scan", "reverse_sort"],
+    "keys": ["stable", "score", "index"],
+    "validations": ["strict", "omitted"]
+  },
+  "search_simulations_default": 96,
+  "search_simulations_max": 500,
+  "candidate_timeout_seconds": 8,
+  "candidate_memory_max_bytes_unix": 536870912,
+  "min_independent_speed_gain": 0.05,
+  "finite_check_values": [-2, -1, 0, 1],
+  "finite_check_max_vector_length": 5,
+  "auto_promote_source_changes": false,
+  "source_promotion_requires_approval": true,
+  "allow_native_code_execution": false,
+  "allow_cloud_provision": false,
+  "allow_network": false,
+  "allowed_source_target": "managed/ast_router.py",
+  "universal_formal_proof_available": false
+}

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexus-m-research"
+version = "0.3.0"
+description = "Experimental NEXUS Evolution architecture: modular learning, causal models, memory, search, controlled source improvement"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "torch>=2.0", "matplotlib>=3.7", "networkx>=3.5", "sympy>=1.12"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+nexus-m = "nexus_m.cli:main"
+nexus-evolution = "nexus_m.evolution_cli:main"
+nexus-autosynth = "nexus_m.autosynth_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nexus_m*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

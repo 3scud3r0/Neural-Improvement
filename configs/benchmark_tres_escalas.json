@@ -1,0 +1,9 @@
+{
+  "command": "benchmark",
+  "arguments": {"widths": [100,1000,10000], "agents": 100,
+    "steps": 1000, "simulations": 1000, "episodes": 30,
+    "seeds": [2026,2027,2028], "depth": 128,
+    "message_dim": 16, "top_k": 4, "rounds": 2,
+    "precision": "adaptive", "telemetry": "summary",
+    "output": "runs/benchmark_tres_escalas"}
+}

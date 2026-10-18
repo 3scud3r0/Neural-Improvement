@@ -1,0 +1,5 @@
+{
+  "command": "decimal-demo",
+  "arguments": {"digits": 100, "agents": 4, "width": 4,
+    "steps": 5, "output": "runs/decimal_100_digitos.json"}
+}

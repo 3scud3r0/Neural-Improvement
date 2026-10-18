@@ -1,0 +1,31 @@
+NEXUS-M — PACOTE COMPLETO DE PESQUISA
+=====================================
+
+1. Instale Python 3.10+ e entre na pasta NEXUS_M_COMPLETO.
+2. Instale:  python -m pip install -e '.[dev]'
+3. Teste:    python -m pytest -q
+4. Execute:  python -m nexus_m demo --output runs/demo
+5. Treine:   python -m nexus_m train --agents 100 --width 100 --steps 1000
+6. Pesquise: python -m nexus_m solve --model runs/training/model_final.pt --simulations 2000 --depth 128
+7. Alta precisão real: python -m nexus_m decimal-demo --digits 100
+
+ARQUIVOS:
+- README.md -> explicação geral
+- docs/RESULTADOS_MEDIDOS.md -> medidas sem extrapolação
+- docs/ARQUITETURA.md -> engenharia
+- docs/METODOLOGIA.md -> protocolo científico
+- docs/LIMITACOES.md -> limites, atenção
+- nexus_m/ -> implementação Python
+- outputs/ -> pesos e logs de execuções reais
+- legacy/ -> TODAS as simulações anteriores e checkpoints preservados
+
+O segundo arquivo de entrega NEXUS_M_CODIGO_COMPLETO.txt é um concatenado
+legível de todos os códigos e configurações textuais; não é um único arquivo
+Python diretamente executável. Cada cabeçalho marca seu caminho dentro do ZIP.
+
+Precisão numérica: float32/float64 para sistema PyTorch, e Decimal de até 1000
+dígitos significativos no microbackend experimental. FP128 e Decimal não são
+utilizados para treinar o modelo de um milhão de neurônios.
+
+ATENÇÃO: apesar de executar, o sistema ainda não generaliza bem nos testes
+inéditos. Não atribuir inteligência geral ou descoberta científica ao modelo.

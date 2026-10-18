@@ -1,0 +1,8 @@
+{
+  "command": "train",
+  "arguments": {"agents": 100, "width": 100, "steps": 1000,
+    "message_dim": 16, "top_k": 4, "rounds": 2,
+    "seed": 2026, "precision": "adaptive", "telemetry": "summary",
+    "search_improve_every": 100, "log_every": 50, "checkpoint_every": 200,
+    "output": "runs/100x100_1000"}
+}

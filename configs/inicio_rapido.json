@@ -1,0 +1,4 @@
+{
+  "command": "demo",
+  "arguments": {"agents": 8, "width": 32, "steps": 20, "simulations": 80, "output": "runs/demo"}
+}

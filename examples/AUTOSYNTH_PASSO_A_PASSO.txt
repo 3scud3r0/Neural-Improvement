@@ -1,0 +1,13 @@
+NEXUS AUTOSYNTH — síntese Python AST sem modelo de linguagem
+
+1. Abrir um terminal na pasta raiz do projeto.
+2. Instalar: python -m pip install -e '.[dev]'
+3. Testar: python -m pytest -q
+4. Perfil: python -m nexus_m.autosynth_cli profile --output runs/autosynth
+5. Buscar: python -m nexus_m.autosynth_cli search --simulations 96 --output runs/autosynth
+6. Examinar: runs/autosynth/managed/candidate_ast_router.py, proof_evidence.json e heldout_measurement.json
+7. Se decidir promover: python -m nexus_m.autosynth_cli search --simulations 96 --output runs/autosynth --approve
+8. Rodada adicional: repetir o comando search no mesmo diretório.
+9. Reverter: python -m nexus_m.autosynth_cli rollback --output runs/autosynth --approve
+
+O arquivo ativo é SOMENTE managed/ast_router.py; nenhuma aprovação concede acesso para alterar o próprio AlignmentGuard.

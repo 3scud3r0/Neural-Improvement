@@ -1,0 +1,27 @@
+{
+  "Com comunicação": {
+    "accuracy": 0.79925,
+    "auc": 0.890885069550448,
+    "mean_positive_score": 0.7015846371650696,
+    "mean_negative_score": 0.3571810722351074
+  },
+  "Sem comunicação": {
+    "accuracy": 0.49275,
+    "auc": 0.4895356160852273,
+    "mean_positive_score": 0.49698010087013245,
+    "mean_negative_score": 0.49744608998298645
+  },
+  "comparacao": {
+    "delta_acuracia": 0.3065,
+    "ic95_bootstrap_delta_acuracia": [
+      0.28700000000000003,
+      0.32550625
+    ],
+    "total_ciclos": 1000,
+    "amostras_teste": 4000,
+    "mensagens_dirigidas_por_ciclo": 9900,
+    "valores_transmitidos_por_ciclo_sem_lote": 990000,
+    "mensagens_dirigidas_durante_treino": 9900000,
+    "observacao": "Contagens por exemplo; durante treinamento com lote de 64 multiplicar pelo tamanho do lote."
+  }
+}

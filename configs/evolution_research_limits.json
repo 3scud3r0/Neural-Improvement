@@ -1,0 +1,13 @@
+{
+  "max_mcts_simulations": 100000,
+  "max_mcts_depth": 1024,
+  "max_agents": 1000,
+  "max_neurons_per_agent": 10000,
+  "max_parameters": 25000000,
+  "max_disk_bytes": 2000000000,
+  "max_wall_seconds": 3600.0,
+  "allow_network": false,
+  "allow_cloud_provision": false,
+  "allow_native_code_execution": false,
+  "auto_promote_source_changes": false
+}

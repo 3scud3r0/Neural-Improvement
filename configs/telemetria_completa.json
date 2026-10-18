@@ -1,0 +1,7 @@
+{
+  "command": "train",
+  "arguments": {"agents": 100, "width": 100, "steps": 20,
+    "seed": 2026, "precision": "float64", "telemetry": "full",
+    "log_every": 1, "checkpoint_every": 10,
+    "output": "runs/full_telemetry"}
+}

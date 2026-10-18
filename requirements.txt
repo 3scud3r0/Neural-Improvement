@@ -1,0 +1,6 @@
+numpy>=1.24
+torch>=2.0
+matplotlib>=3.7
+networkx>=3.5
+sympy>=1.12
+pytest>=8
