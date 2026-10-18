@@ -1,0 +1,9 @@
+{
+  "tests": [["{python}", "-m", "pytest", "-q", "examples/function_synthesis/test_attention_contract.py", "-k", "training"]],
+  "heldout": [["{python}", "-m", "pytest", "-q", "examples/function_synthesis/test_attention_contract.py", "-k", "heldout"]],
+  "benchmark": ["{python}", "examples/function_synthesis/benchmark.py", "attention"],
+  "repetitions": 3,
+  "timeout_seconds": 60,
+  "benchmark_timeout_seconds": 60,
+  "seed": 2026
+}
