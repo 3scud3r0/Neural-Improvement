@@ -46,12 +46,12 @@ uma lista finita. `--output` define a raiz dos caminhos editáveis: para trabalh
 no próprio projeto, essa raiz deve ser o projeto. Caminhos que escapam da raiz,
 inclusive por symlinks, são recusados.
 
-A autorização de edição admite qualquer arquivo dentro dessa raiz. Os dois
-otimizadores existentes continuam especializados em roteadores top-k: não
+A autorização de edição admite qualquer arquivo dentro dessa raiz. Os modos anteriores `improve` e `search` continuam especializados em roteadores top-k: não
 reescrevem módulos arbitrários. AutoSynth mantém sua gramática de 24 programas,
 testes diferenciais, evidência finita e verificação estrutural. O improver
 tradicional continua propondo sort/heap. Remover permissões não cria um gerador
-universal de programas. A promoção exige o ganho medido configurado, preserva
+universal de programas. O novo [modo `function-search`](GENERAL_FUNCTION_SYNTHESIS.md)
+usa outro backend para ASTs completas de funções e propostas extensíveis. A promoção exige o ganho medido configurado, preserva
 backup e troca a fonte por substituição atômica.
 
 ## NeuroOS incorporado

@@ -1,0 +1,46 @@
+{
+  "runtime": {
+    "python": "3.12.14",
+    "torch": "2.14.1+cpu",
+    "os": "Linux",
+    "device": "CPU"
+  },
+  "timing_note": "MCTS: process CPU time for 5000 selections. Attention: wall time for 120 forward calls, one thread. Medians, three independent benchmark processes with five internal samples each.",
+  "proposal_note": "Complete alternatives were supplied to the MCTS; these experiments do not demonstrate autonomous algorithm invention.",
+  "experiments": [
+    {
+      "name": "attention",
+      "target": "examples/function_synthesis/attention.py",
+      "function": "attention",
+      "contract": "examples/function_synthesis/attention_contract.json",
+      "proposal": "examples/function_synthesis/proposals_attention/sdpa.py",
+      "original_sha256": "eac8b597d645c9bd721d9935213528f32ba78304a3ea70dd7bd2c0e657808a95",
+      "candidate_sha256": "ccc464b4c4084db556e78b008ceaaab324c11f7f0dbb8b087420bb7ec2c33511",
+      "promoted_in_disposable_copy": true,
+      "original_final_seconds": 0.06396447899896884,
+      "candidate_final_seconds": 0.03935806700064859,
+      "final_relative_gain": 0.3846886957168357,
+      "search_simulations": 2,
+      "unique_candidates": 1,
+      "search_and_heldout_commands_passed": true,
+      "verification_scope": "supplied tests and benchmarks, not universal equivalence"
+    },
+    {
+      "name": "mcts",
+      "target": "nexus_m/mcts.py",
+      "function": "SharedMCTS._select",
+      "contract": "examples/function_synthesis/mcts_contract.json",
+      "proposal": "examples/function_synthesis/proposals_mcts/inline_statistics.py",
+      "original_sha256": "9c591e7e0b499773a260aae722028c94dfef5dca37da3891395e1350c6cf3237",
+      "candidate_sha256": "b1142d5f49380e2a7cfe213e56987ede368b1b6bc87a13bb43cb7ca78d1d8792",
+      "promoted_in_disposable_copy": true,
+      "original_final_seconds": 0.07458565900000025,
+      "candidate_final_seconds": 0.05061614800000003,
+      "final_relative_gain": 0.32136889747129727,
+      "search_simulations": 3,
+      "unique_candidates": 3,
+      "search_and_heldout_commands_passed": true,
+      "verification_scope": "supplied tests and benchmarks, not universal equivalence"
+    }
+  ]
+}

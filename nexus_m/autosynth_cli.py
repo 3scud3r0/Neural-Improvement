@@ -37,7 +37,61 @@ def main(argv=None):
     v.add_argument('--strategy',choices=('sort','heap','scan','reverse_sort'),default='heap')
     v.add_argument('--key',choices=('stable','score','index'),default='stable')
     v.add_argument('--validation',choices=('strict','omitted'),default='strict')
+    generic=sub.add_parser('function-search',help='MCTS over complete repository function ASTs')
+    generic.add_argument('--workspace',type=Path,default=Path('.'))
+    generic.add_argument('--target',required=True,help='Python file relative to workspace')
+    generic.add_argument('--function',required=True,help='qualified name, e.g. SharedMCTS._select')
+    generic.add_argument('--contract',required=True,type=Path,help='JSON test/benchmark commands')
+    generic.add_argument('--output',type=Path,default=None)
+    generic.add_argument('--simulations',type=int,default=32)
+    generic.add_argument('--depth',type=int,default=3)
+    generic.add_argument('--max-children',type=int,default=16)
+    generic.add_argument('--seed',type=int,default=2026)
+    generic.add_argument('--min-gain',type=float,default=.05)
+    generic.add_argument('--proposals',type=Path,action='append',default=[],help='complete function file or directory')
+    generic.add_argument('--provider',action='append',default=[],help='trusted module:callable AST proposer')
+    generic.add_argument('--no-mutations',action='store_true',help='use only supplied proposal providers')
+    generic.add_argument('--approve',action=argparse.BooleanOptionalAction,default=None)
+    undo=sub.add_parser('function-rollback',help='restore a promoted repository function source file')
+    undo.add_argument('--workspace',type=Path,default=Path('.'))
+    undo.add_argument('--output',type=Path,required=True)
+    undo.add_argument('--approve',action=argparse.BooleanOptionalAction,default=None)
+    listing=sub.add_parser('functions',help='list functions and methods in a Python source file')
+    listing.add_argument('--workspace',type=Path,default=Path('.'))
+    listing.add_argument('--target',required=True)
     args=p.parse_args(argv)
+    if args.command=='functions':
+        import ast,tokenize
+        from .function_ast import function_names
+        workspace=args.workspace.resolve()
+        path=(workspace/args.target).resolve()
+        path.relative_to(workspace)
+        with tokenize.open(path) as stream:tree=ast.parse(stream.read())
+        print(json.dumps(list(function_names(tree)),indent=2));return 0
+    if args.command=='function-rollback':
+        from .repository_improver import rollback_function
+        print(json.dumps(rollback_function(args.workspace,args.output,approve=args.approve),indent=2))
+        return 0
+    if args.command=='function-search':
+        from .function_ast import SourceProposals,load_provider,mutations
+        from .function_evaluator import FunctionContract
+        from .repository_improver import RepositoryFunctionImprover
+        providers=[]
+        for path in args.proposals:
+            paths=sorted(path.glob('*.py')) if path.is_dir() else [path]
+            if not paths:p.error(f'no proposal files found: {path}')
+            providers.append(SourceProposals(paths))
+        providers.extend(load_provider(ref) for ref in args.provider)
+        if not args.no_mutations:providers.append(mutations)
+        if not providers:p.error('supply proposals/providers or enable mutations')
+        output=args.output or args.workspace/'runs/function_synthesis'
+        engine=RepositoryFunctionImprover(args.workspace,args.target,args.function,
+                                         FunctionContract.read(args.contract),output)
+        result=engine.run(simulations=args.simulations,max_depth=args.depth,
+                          max_children=args.max_children,min_gain=args.min_gain,
+                          providers=providers,seed=args.seed,approve=args.approve)
+        print(json.dumps(result,indent=2,ensure_ascii=False))
+        return 0
     if args.command=='capacity':
         print(json.dumps(plan(args.agents,args.width,args.nodes,
                               args.simulations,args.workers).as_dict(),indent=2));return 0

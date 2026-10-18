@@ -2,6 +2,28 @@
 
 **Novo laboratório executável: AST Python, busca MCTS sobre programas, benchmarks isolados, verificação finita, melhoramento iterativo de fonte, promoção automática, hot-swap e rollback.** Mantém todos os módulos da versão anterior NEXUS Evolution Lab.
 
+## Síntese de funções do repositório
+
+O novo modo `function-search` faz MCTS sobre **ASTs completas de funções Python**,
+selecionadas por arquivo e nome qualificado, como `SharedMCTS._select` ou
+`Attention.forward`. Aceita propostas de algoritmos inteiros e provedores
+extensíveis; avalia testes e benchmarks em cópias do projeto, com promoção
+atômica e rollback. Veja o [guia de síntese genérica](docs/GENERAL_FUNCTION_SYNTHESIS.md).
+
+```bash
+python -m nexus_m.autosynth_cli functions --target nexus_m/mcts.py
+python -m nexus_m.autosynth_cli function-search --target nexus_m/mcts.py \
+  --function SharedMCTS._select \
+  --contract examples/function_synthesis/mcts_contract.json \
+  --proposals examples/function_synthesis/proposals_mcts \
+  --no-mutations --simulations 2 --depth 1 --no-approve
+```
+
+O modo antigo `search` continua disponível para roteadores. O novo backend não
+usa essa gramática de 24 programas. Sua capacidade de descobrir algoritmos
+depende das propostas e dos contratos; aceitar ASTs gerais não demonstra AGI
+nem garante invenção autônoma de algoritmos.
+
 ## Início rápido
 
 ```bash
@@ -14,7 +36,7 @@ O comando promove automaticamente candidatos que passam pelos testes e pelo ganh
 
 **NeuroOS e CrossJail:** veja o [guia de integração, execução contínua e contenção](docs/NEUROOS_CROSSJAIL.md). O NeuroOS foi incorporado como módulo opcional; o CrossJail copia o projeto, limpa o ambiente e aplica os controles disponíveis. Não oferece isolamento de filesystem contra código hostil.
 
-A gramática atual gera 24 programas AST de otimização top-k, **não** qualquer programa Python; não existem provas universais de alinhamento, execução nativa autônoma, provisionamento de nuvem ou autoaperfeiçoamento ilimitado.
+A gramática do modo `search` gera 24 programas AST de otimização top-k; o modo `function-search` aceita funções Python gerais. Neste protótipo, não existem provas universais de alinhamento nem demonstração de autoaperfeiçoamento ilimitado. O backend genérico executa Python comum nos processos de avaliação, sob as permissões do usuário.
 
 ![Resultados medidos do experimento AutoSynth](outputs/autosynth/autosynth_resultados.png)
 
