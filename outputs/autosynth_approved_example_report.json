@@ -1,0 +1,22 @@
+{
+  "selected": {
+    "strategy": "heap",
+    "key": "score",
+    "validation": "strict"
+  },
+  "search_simulations": 75,
+  "explored_programs": 13,
+  "search_elapsed_s": 7.845468055999959,
+  "measured_train_gain": 0.7313462189138893,
+  "heldout_gain": 0.7643089088240694,
+  "heldout_equivalent": true,
+  "finite_cases": 10467,
+  "structurally_terminating": true,
+  "universal_formal_proof": false,
+  "staged_source": "/mnt/data/NEXUS_AUTOSYNTH_LAB/outputs/autosynth_approved_example/managed/candidate_ast_router.py",
+  "active_source": "/mnt/data/NEXUS_AUTOSYNTH_LAB/outputs/autosynth_approved_example/managed/ast_router.py",
+  "active_before_sha256": "4924c6fe35c7d174a327e0af61f8e72ddb4aeb78e9fe053f1ae7ce35673085c2",
+  "promoted": true,
+  "reason": "approved promotion applied atomically; previous source backed up",
+  "audit_ledger_verified": true
+}
