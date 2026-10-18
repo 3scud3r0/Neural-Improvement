@@ -53,7 +53,7 @@ class FunctionSearch:
 class FunctionMCTS:
     def __init__(self, target: FunctionTarget, evaluator: ProjectEvaluator,
                  providers: list[ProposalProvider], *, simulations=32, max_depth=3,
-                 max_children=16, exploration=1.4, seed=2026):
+                 max_children=16, exploration=1.4, seed=2026,reward_fn=None):
         if min(simulations, max_depth, max_children) < 1:
             raise ValueError('simulations, max_depth and max_children must be positive')
         if not math.isfinite(exploration) or exploration < 0:
@@ -62,6 +62,7 @@ class FunctionMCTS:
         self.simulations, self.max_depth, self.max_children = simulations, max_depth, max_children
         self.exploration, self.rng = exploration, random.Random(seed)
         self.root = FunctionNode(deepcopy(target.function), 'original')
+        self.reward_fn=reward_fn
 
     def _proposals(self, function):
         for provider in self.providers:
@@ -136,6 +137,9 @@ class FunctionMCTS:
             except (ValueError, TypeError, SyntaxError, UnicodeError) as exc:
                 error = str(exc)
             reward = .1 + max(-.95, min(.95, gain)) if passed else -1.
+            if self.reward_fn is not None:
+                reward=self.reward_fn(self.target.function,node.function,gain,passed)
+                if not math.isfinite(reward):raise ValueError('reward hook returned nonfinite score')
             for visited in path:
                 visited.visits += 1
                 visited.reward_sum += reward

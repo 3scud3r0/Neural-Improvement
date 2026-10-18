@@ -2,6 +2,26 @@
 
 **Novo laboratório executável: AST Python, busca MCTS sobre programas, benchmarks isolados, verificação finita, melhoramento iterativo de fonte, promoção automática, hot-swap e rollback.** Mantém todos os módulos da versão anterior NEXUS Evolution Lab.
 
+## Descoberta automática tipada e avaliação CPU/CUDA
+
+O novo laboratório conecta e-graphs, geração tipada, busca com combustível,
+normalização de polinômios/Z3, referência congelada e transações entre módulos.
+Para funções inteiras no fragmento suportado, ele gera propostas e contratos
+sem arquivos de algoritmos prontos. Uma VM vetorizada avalia bytecode int64 em
+CPU/CUDA; Triton é opcional para exportação afim. Veja o
+[guia e seus limites](docs/TYPED_DISCOVERY_AND_GPU.md) e os
+[resultados medidos](docs/RESULTADOS_TYPED_DISCOVERY.md).
+
+```bash
+python -m pip install -e ".[dev,smt]"
+python -m nexus_m.sovereign_improver improve \
+  --symbol examples.typed_discovery_demo.arithmetic.redundant_identity \
+  --output runs/typed_discovery --max-fuel 2000 --no-approve
+```
+
+A referência fornece a especificação; não há inferência autônoma de intenção.
+O backend geral abaixo continua atendendo funções fora do fragmento tipado.
+
 ## Síntese de funções do repositório
 
 O novo modo `function-search` faz MCTS sobre **ASTs completas de funções Python**,

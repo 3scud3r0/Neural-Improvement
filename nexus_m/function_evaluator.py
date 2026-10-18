@@ -23,6 +23,15 @@ from .function_ast import FunctionTarget, digest
 
 
 @dataclass
+class SnapshotTarget:
+    workspace: Path
+    relative_path: str
+    original: bytes
+    @property
+    def path(self):return self.workspace/self.relative_path
+
+
+@dataclass
 class FunctionContract:
     tests: list[list[str]]
     benchmark: list[str]
@@ -144,15 +153,23 @@ class ProjectEvaluator:
     def __enter__(self): return self
     def __exit__(self, *args): self.close()
 
-    def measure(self, source: bytes, *, heldout=False) -> FunctionMeasurement:
-        result = FunctionMeasurement(digest(source), False, None)
+    def measure(self, source: bytes | dict[str,bytes], *, heldout=False) -> FunctionMeasurement:
+        sources=source if isinstance(source,dict) else {self.target.relative_path:source}
+        identity=(json.dumps({name:digest(data) for name,data in sorted(sources.items())},sort_keys=True).encode()
+                  if isinstance(source,dict) else source)
+        result = FunctionMeasurement(digest(identity), False, None)
         try:
             with tempfile.TemporaryDirectory(prefix='nexus_function_trial_') as folder:
                 root = Path(folder)
                 work, scratch = root/'work', root/'tmp'
                 scratch.mkdir()
                 shutil.copytree(self.snapshot, work)
-                (work/self.target.relative_path).write_bytes(source)
+                for name,data in sources.items():
+                    path=(work/name).resolve()
+                    path.relative_to(work)
+                    if not path.is_file() or not isinstance(data,bytes):raise ValueError('patches must replace existing project files with bytes')
+                    if path.suffix=='.py':compile(data,str(path),'exec')
+                    path.write_bytes(data)
                 env = _environment(work, scratch, self.contract.seed + (1 if heldout else 0))
                 tests = self.contract.tests + (self.contract.heldout if heldout else [])
                 for command in tests:
@@ -178,6 +195,6 @@ class ProjectEvaluator:
                     timings.append(float(seconds))
                 result.seconds = statistics.median(timings)
                 result.passed = True
-        except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as exc:
+        except (OSError, ValueError, SyntaxError, KeyError, TypeError, subprocess.SubprocessError) as exc:
             result.error = str(exc)
         return result

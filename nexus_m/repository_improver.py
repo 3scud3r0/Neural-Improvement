@@ -56,7 +56,7 @@ class RepositoryFunctionImprover:
             raise RuntimeError('source changed since evaluation; refusing to overwrite it')
 
     def run(self, *, simulations=32, max_depth=3, max_children=16, min_gain=.05,
-            providers: list[ProposalProvider] | None = None, seed=2026, approve=None):
+            providers: list[ProposalProvider] | None = None, seed=2026, approve=None,reward_fn=None):
         started = time.monotonic()
         if not math.isfinite(min_gain) or not 0 <= min_gain < 1:
             raise ValueError('min_gain must be in [0, 1)')
@@ -70,7 +70,7 @@ class RepositoryFunctionImprover:
         with ProjectEvaluator(self.target, self.contract, self.output) as evaluator:
             search = FunctionMCTS(self.target, evaluator, providers if providers is not None else [mutations],
                                   simulations=simulations, max_depth=max_depth,
-                                  max_children=max_children, seed=seed).search()
+                                  max_children=max_children, seed=seed,reward_fn=reward_fn).search()
             ranked = sorted((item for item in search.candidates if item.measurement.passed),
                             key=lambda item:item.gain, reverse=True)
             selected = ranked[0] if ranked else None
