@@ -1,0 +1,162 @@
+{
+  "device": "CPU",
+  "cuda_validated": false,
+  "triton_validated": false,
+  "vm": {
+    "device": "cpu",
+    "python": "3.12.14",
+    "torch": "2.14.1+cpu",
+    "cuda_available": false,
+    "triton": {
+      "triton_installed": false,
+      "cuda_available": false,
+      "available": false,
+      "scope": "contiguous CUDA int64 affine transforms"
+    },
+    "programs": 512,
+    "inputs": 128,
+    "program_input_pairs": 65536,
+    "distinct_programs": 4,
+    "threads": 1,
+    "instruction_slots": 327680,
+    "survivors": 128,
+    "compile_seconds": 0.0018345950011280365,
+    "vector_seconds_median": 0.02964454500033753,
+    "program_input_pairs_per_second": 2210727.1337527297,
+    "scalar_short_circuit_seconds_median": 0.008733697999559809,
+    "scalar_full_seconds_median": 0.02707556600216776,
+    "chunks": 2,
+    "estimated_peak_chunk_bytes": 14680064,
+    "note": "CPU/CUDA timings are measured only on the reported device. Scalar verifier may short-circuit; no universal throughput claim."
+  },
+  "experiments": [
+    {
+      "name": "single",
+      "status": "promoted",
+      "promoted": true,
+      "measured_gain": 0.7394946844927394,
+      "reference": {
+        "reference_sha256": "607685e46e3761c872020dbab592931c2fcbfbfab3030cbd0daaf19611fe1039",
+        "reference_is_specification": true,
+        "intent_inferred": false
+      },
+      "proof_evidence": [
+        {
+          "status": "proved",
+          "counterexample": null,
+          "expected": null,
+          "observed": null,
+          "witness_iterations": 0,
+          "proof_kind": "integer_polynomial_normal_form",
+          "scope": "mathematical integer expressions, not arbitrary Python"
+        }
+      ],
+      "frozen_specification_not_inferred_intent": true,
+      "original_seconds": 0.0027386849999999976,
+      "candidate_seconds": 0.0007134420000000016,
+      "symbols": [
+        "examples.typed_discovery_demo.arithmetic.redundant_identity"
+      ],
+      "original_sha256": "3a391f12d13470be9e324efd2372b9f3894b0c605a0345b0c713ab34e70c7b25",
+      "candidate_sha256": "eada7ddb983fd5ca96649ab585d1fce2587e6661deb828a8598c23b11d972d8f"
+    },
+    {
+      "name": "rejected_bundle",
+      "status": "rejected",
+      "promoted": false,
+      "measured_gain": -0.08492117234666913,
+      "reference": {
+        "reference_sha256": "0de5f3a355655bbbdfab34883b7792494a90e76265f43faa0d62489ad3f6150d",
+        "reference_is_specification": true,
+        "intent_inferred": false
+      },
+      "proof_evidence": [
+        {
+          "status": "proved",
+          "counterexample": null,
+          "expected": null,
+          "observed": null,
+          "witness_iterations": 0,
+          "proof_kind": "integer_polynomial_normal_form",
+          "scope": "mathematical integer expressions, not arbitrary Python"
+        },
+        {
+          "status": "proved",
+          "counterexample": null,
+          "expected": null,
+          "observed": null,
+          "witness_iterations": 0,
+          "proof_kind": "integer_polynomial_normal_form",
+          "scope": "mathematical integer expressions, not arbitrary Python"
+        }
+      ],
+      "frozen_specification_not_inferred_intent": true,
+      "files": [
+        "examples/typed_discovery_demo/arithmetic.py",
+        "examples/typed_discovery_demo/secondary.py"
+      ],
+      "original_seconds": 0.0011208629999999997,
+      "candidate_seconds": 0.0012160480000000043,
+      "symbols": [
+        "examples.typed_discovery_demo.arithmetic.expand_square",
+        "examples.typed_discovery_demo.secondary.redundant_double"
+      ]
+    },
+    {
+      "name": "bundle",
+      "status": "committed",
+      "promoted": true,
+      "measured_gain": 0.6222024824142326,
+      "reference": {
+        "reference_sha256": "8ee4f0c9f00ff2bc1ca65f370ebb48da0d5e646d4143dc4bb6f82e0a158017b3",
+        "reference_is_specification": true,
+        "intent_inferred": false
+      },
+      "proof_evidence": [
+        {
+          "status": "proved",
+          "counterexample": null,
+          "expected": null,
+          "observed": null,
+          "witness_iterations": 0,
+          "proof_kind": "integer_polynomial_normal_form",
+          "scope": "mathematical integer expressions, not arbitrary Python"
+        },
+        {
+          "status": "proved",
+          "counterexample": null,
+          "expected": null,
+          "observed": null,
+          "witness_iterations": 0,
+          "proof_kind": "integer_polynomial_normal_form",
+          "scope": "mathematical integer expressions, not arbitrary Python"
+        }
+      ],
+      "frozen_specification_not_inferred_intent": true,
+      "files": [
+        "examples/typed_discovery_demo/arithmetic.py",
+        "examples/typed_discovery_demo/secondary.py"
+      ],
+      "original_seconds": 0.0020826500000000053,
+      "candidate_seconds": 0.0007868200000000006,
+      "symbols": [
+        "examples.typed_discovery_demo.arithmetic.redundant_identity",
+        "examples.typed_discovery_demo.secondary.redundant_double"
+      ],
+      "sources": [
+        {
+          "path": "examples/typed_discovery_demo/arithmetic.py",
+          "original_sha256": "3a391f12d13470be9e324efd2372b9f3894b0c605a0345b0c713ab34e70c7b25",
+          "candidate_sha256": "eada7ddb983fd5ca96649ab585d1fce2587e6661deb828a8598c23b11d972d8f"
+        },
+        {
+          "path": "examples/typed_discovery_demo/secondary.py",
+          "original_sha256": "a7f888436f7235d05b68c2afb7e3da5971ff9db11e9f5935c81c08c222d2864d",
+          "candidate_sha256": "2a9c2f8717e197bba9b426e27dc5a62e6016d7cf330d519413fb8bedb40169f0"
+        }
+      ]
+    }
+  ],
+  "recovery": "Single-file rollback and bundle recovery restored exact original bytes.",
+  "caveat": "Synthetic redundant integer examples, reference-derived oracle. Not evidence of AGI, general algorithm invention or solving undecidability."
+}

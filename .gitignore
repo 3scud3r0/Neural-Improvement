@@ -10,6 +10,7 @@ dist/
 build/
 # Generated experiments and private data
 runs/
+.nexus_transaction.lock
 *.sqlite
 *.sqlite3
 *.db
